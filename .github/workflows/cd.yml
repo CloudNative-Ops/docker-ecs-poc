@@ -33,6 +33,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - uses: hashicorp/setup-terraform@v3
+
       - name: Create/Update infrastructure
         if: ${{ inputs.infra == 'create' }}
         run: |
