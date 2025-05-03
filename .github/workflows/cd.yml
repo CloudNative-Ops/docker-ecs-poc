@@ -11,6 +11,13 @@ on:
           - create
           - destroy
 
+concurrency:
+  group: "ci-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   deploy:
     environment: dev
