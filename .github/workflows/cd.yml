@@ -1,0 +1,45 @@
+name: CD 
+on:
+  workflow_dispatch:
+    inputs:
+      infra:
+        description: 'Deploy or undeploy?'
+        required: true
+        default: 'yes'
+        type: choice
+        options:
+          - create
+          - destroy
+
+jobs:
+  deploy:
+    environment: dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Create/Update infrastructure
+        if: ${{ inputs.infra == 'create' }}
+        run: |
+          cd terraform/ecs
+          terraform init
+          terraform plan
+          terraform apply -auto-approve -var-file=vars/dev.tfvars
+      
+      - name: Destroy infrastructure
+        if: ${{ inputs.infra == 'destroy' }}
+        run: |
+          cd terraform/ecs
+          terraform init
+          terraform plan -destroy
+          terraform destroy -auto-approve -var-file=vars/dev.tfvars
+          
+# -var="aws_region=${{ vars.AWS_REGION }}" -var="aws_account_id=${{ vars.AWS_ACCOUNT_ID }}" -var="ecr_repo_name=${{ vars.ECR_REPO_NAME }}"
